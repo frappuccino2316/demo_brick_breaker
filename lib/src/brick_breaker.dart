@@ -2,17 +2,16 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flame/components.dart';
-import 'package:flame/events.dart'; // Add this import
+import 'package:flame/events.dart';
 import 'package:flame/game.dart';
-import 'package:flutter/material.dart'; // And this import
-import 'package:flutter/services.dart'; // And this
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'components/components.dart';
 import 'config.dart';
 
 class BrickBreaker extends FlameGame
     with HasCollisionDetection, KeyboardEvents {
-  // Modify this line
   BrickBreaker()
       : super(
           camera: CameraComponent.withFixedResolution(
@@ -34,6 +33,7 @@ class BrickBreaker extends FlameGame
     world.add(PlayArea());
 
     world.add(Ball(
+        difficultyModifier: difficultyModifier, // Add this argument
         radius: ballRadius,
         position: size / 2,
         velocity: Vector2((rand.nextDouble() - 0.5) * width, height * 0.2)
@@ -41,15 +41,27 @@ class BrickBreaker extends FlameGame
           ..scale(height / 4)));
 
     world.add(Bat(
-        // Add from here...
         size: Vector2(batWidth, batHeight),
         cornerRadius: const Radius.circular(ballRadius / 2),
-        position: Vector2(width / 2, height * 0.95))); // To here
+        position: Vector2(width / 2, height * 0.95)));
+
+    await world.addAll([
+      // Add from here...
+      for (var i = 0; i < brickColors.length; i++)
+        for (var j = 1; j <= 5; j++)
+          Brick(
+            position: Vector2(
+              (i + 0.5) * brickWidth + (i + 1) * brickGutter,
+              (j + 2.0) * brickHeight + j * brickGutter,
+            ),
+            color: brickColors[i],
+          ),
+    ]); // To here.
 
     debugMode = true;
   }
 
-  @override // Add from here...
+  @override
   KeyEventResult onKeyEvent(
       KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
     super.onKeyEvent(event, keysPressed);
@@ -60,5 +72,5 @@ class BrickBreaker extends FlameGame
         world.children.query<Bat>().first.moveBy(batStep);
     }
     return KeyEventResult.handled;
-  } // To here
+  }
 }
